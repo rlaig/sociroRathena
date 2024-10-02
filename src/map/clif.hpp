@@ -675,6 +675,8 @@ enum clif_messages : uint16_t {
 
 	// Enchantment failed!
 	MSI_ENCHANT_FAILED = 3858,
+
+	SKILL_FAIL_P_ALT_HEAT_B_MADNESSC = 2562,
 };
 
 enum e_personalinfo : uint8_t {
