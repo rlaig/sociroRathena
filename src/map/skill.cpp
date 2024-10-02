@@ -875,7 +875,7 @@ bool skill_isNotOk( uint16 skill_id, map_session_data& sd ){
 
 	if( sd.sc.getSCE(SC_ALL_RIDING) )
 		return true; //You can't use skills while in the new mounts (The client doesn't let you, this is to make cheat-safe)
-	if (sd->sc.getSCE(SC_HANDICAPSTATE_MISFORTUNE) && rand() % 100 < 30) {
+	if (sd.sc.getSCE(SC_HANDICAPSTATE_MISFORTUNE) && rand() % 100 < 30) {
 		clif_skill_fail(sd,skill_id,USESKILL_FAIL_LEVEL,0);
 		return true;
 	}
@@ -3286,7 +3286,7 @@ int skill_mirage_cast(struct block_list* src, struct block_list* bl, int skill_i
 				break;
 			case SS_KAGENOMAI://nodamage splash
 			case SS_ANTENPOU://nodamage splash
-				clif_skill_nodamage(&itsu->unit->bl, &itsu->unit->bl, skill_id, skill_lv, tick);
+				clif_skill_nodamage(&itsu->unit->bl, *bl, skill_id, skill_lv, tick);
 				map_foreachinrange(skill_area_sub, &itsu->unit->bl, skill_get_splash(skill_id, skill_lv), BL_CHAR,
 					src, skill_id, skill_lv, tick, BCT_ENEMY | SD_SPLASH | SD_ANIMATION | SKILL_ALTDMG_FLAG | 1, skill_castend_damage_id);
 				break;
@@ -3294,7 +3294,7 @@ int skill_mirage_cast(struct block_list* src, struct block_list* bl, int skill_i
 				x = bl->x;
 				y = bl->y;
 				skill_area_temp[1] = 0;
-				clif_skill_nodamage(&itsu->unit->bl, bl, skill_id, skill_lv, tick);
+				clif_skill_nodamage(&itsu->unit->bl, *bl, skill_id, skill_lv, tick);
 				if (battle_config.skill_eightpath_algorithm) {
 					//Use official AoE algorithm
 					map_foreachindir(skill_attack_area, itsu->unit->bl.m, itsu->unit->bl.x, itsu->unit->bl.y, x, y,
@@ -5514,7 +5514,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 	case SS_KAGEGISSEN:
 		skill_mirage_cast(src, bl,skill_id, skill_lv, 0, 0, tick,flag);
-		clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
+		clif_skill_nodamage(src, *bl, skill_id, skill_lv, 1);
 	case NC_FLAMELAUNCHER:
 		skill_area_temp[1] = bl->id;
 		if (battle_config.skill_eightpath_algorithm) {
@@ -6070,20 +6070,20 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 					sc_start(src, src, skill_get_sc(skill_id), 100, skill_lv, skill_get_time(skill_id, skill_lv));
 					break;
 				case SOA_TALISMAN_OF_RED_PHOENIX:
-					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+					clif_skill_nodamage(src,*bl,skill_id,skill_lv,1);
 					skill_area_temp[0] = map_foreachinallrange(skill_area_sub, bl, skill_get_splash(skill_id, skill_lv), BL_CHAR, src, skill_id, skill_lv, tick, BCT_ENEMY, skill_area_sub_count);
 					if (sc && (sc->getSCE(SC_T_SECOND_GOD) && !sc->getSCE(SC_T_THIRD_GOD) && !sc->getSCE(SC_T_FIFTH_GOD))){
 						sc_start(src, src, skill_get_sc(skill_id), 100, skill_lv, skill_get_time(skill_id, skill_lv));
 					}
 					break;
 				case SOA_CIRCLE_OF_DIRECTIONS_AND_ELEMENTALS:
-					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+					clif_skill_nodamage(src,*bl,skill_id,skill_lv,1);
 					skill_area_temp[0] = map_foreachinallrange(skill_area_sub, bl, skill_get_splash(skill_id, skill_lv), BL_CHAR, src, skill_id, skill_lv, tick, BCT_ENEMY, skill_area_sub_count);
 					sc_start(src,src,SC_T_FIFTH_GOD,100,skill_lv,skill_get_time(skill_id,skill_lv));
 					break;
 				case SS_KINRYUUHOU:
 					skill_mirage_cast(src, NULL,SS_ANTENPOU, skill_lv, 0, 0, tick,flag);
-					clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+					clif_skill_nodamage(src,*bl,skill_id,skill_lv,1);
 					break;
 
 			}
@@ -6125,7 +6125,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		break;
 
 	case SKE_RISING_SUN:
-		clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
+		clif_skill_nodamage(src, *bl, skill_id, skill_lv, 1);
 		skill_attack(skill_get_type(skill_id), src, src, bl, skill_id, skill_lv, tick, flag);
 		if (sc) {
 			if (!sc->getSCE(SC_RISING_SUN) && !sc->getSCE(SC_NOON_SUN) && !sc->getSCE(SC_SUNSET_SUN))
@@ -6179,7 +6179,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				}
 			}
 			if (sd)
-				clif_skill_fail(sd, skill_id, USESKILL_FAIL_LEVEL, 0);
+				clif_skill_fail(*sd, skill_id, USESKILL_FAIL_LEVEL, 0);
 			return 1;
 		}
 		break;
@@ -6221,7 +6221,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 				unit_setdir(bl,dir);
 				clif_blown(src);
 			} else if (sd) {
-				clif_skill_fail(sd, skill_id, USESKILL_FAIL_TARGET_SHADOW_SPACE, 0);
+				clif_skill_fail(*sd, skill_id, USESKILL_FAIL_TARGET_SHADOW_SPACE, 0);
 				break;
 			}
 		}
@@ -7422,7 +7422,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
  		break;
 
 	case SOA_TALISMAN_OF_BLUE_DRAGON:
-		clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+		clif_skill_nodamage(src,*bl,skill_id,skill_lv,1);
 		skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag);
 		if (!(sc && (sc->getSCE(SC_T_SECOND_GOD) || sc->getSCE(SC_T_THIRD_GOD) || sc->getSCE(SC_T_FOURTH_GOD) || sc->getSCE(SC_T_FIFTH_GOD) ))){
 			sc_start(src,src,SC_T_FIRST_GOD,100,1,skill_get_time(skill_id,skill_lv));
@@ -7435,7 +7435,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 			int64 sp = 100 * skill_lv + status_get_lv(src);
 
 			status_heal(src, 0, sp, 0, 0);
-			clif_skill_nodamage(src, src, MG_SRECOVERY, (int)sp, 1);
+			clif_skill_nodamage(src, *src, MG_SRECOVERY, (int)sp, 1);
 		}
 		break;
 
@@ -8324,7 +8324,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 		break;
 	case RL_P_ALTER:
-		clif_skill_nodamage(src,bl,skill_id,skill_lv,
+		clif_skill_nodamage(src,*bl,skill_id,skill_lv,
 			sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 		sc_start2(src,bl,SC_KYRIE,100,skill_lv,skill_id,skill_get_time(skill_id,skill_lv));
 		break;
@@ -8416,7 +8416,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if (sd == nullptr || sd->status.party_id == 0 || (flag & 2)) {
 				int heal_amount = sstatus->max_hp * skill_lv * 2 / 100;
 				clif_specialeffect(bl, 1808, AREA);
-				clif_skill_nodamage( nullptr, bl, AL_HEAL, heal_amount, 1 );
+				clif_skill_nodamage( nullptr, *bl, AL_HEAL, heal_amount, 1 );
 				status_heal(bl, heal_amount, 0, 0);
 			} else if (sd)
 				party_foreachsamemap(skill_area_sub, sd, skill_get_splash(skill_id, skill_lv), src, skill_id, skill_lv, tick, flag | BCT_PARTY | 3, skill_castend_nodamage_id);
@@ -11321,7 +11321,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		if(sd) {
 			int limit = 5 + pc_checkskill(sd, SP_SOULENERGY) * 3;
 
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+			clif_skill_nodamage(src,*bl,skill_id,skill_lv,1);
 			for (i = 0; i < limit; i++)
 				pc_addsoulball(sd,limit);
 		}
@@ -11329,10 +11329,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	case SOA_TALISMAN_OF_PROTECTION:
 		if (flag&1)	{
 			int heal_amount = (500 + pc_checkskill(sd,SOA_TALISMAN_MASTERY) * 50) * skill_lv + (status_get_lv(src) + status_get_crt(src)) * 20;
-			clif_skill_nodamage(nullptr, bl, AL_HEAL, heal_amount, 1);
+			clif_skill_nodamage(nullptr, *bl, AL_HEAL, heal_amount, 1);
 			status_heal(bl, heal_amount, 0, 0, 0);
 		} else
-			clif_skill_nodamage(src, bl, skill_id, skill_lv, sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv)));
+			clif_skill_nodamage(src, *bl, skill_id, skill_lv, sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv)));
 		break;
 	case SOA_TALISMAN_OF_WARRIOR:
 	case SOA_TALISMAN_OF_MAGICIAN:
@@ -11340,12 +11340,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		if (dstsd) {
 			short index = dstsd->equip_index[EQI_HAND_R];
 			if (index >= 0 && dstsd->inventory_data[index] && dstsd->inventory_data[index]->type == IT_WEAPON) {
-				clif_skill_nodamage(src,bl,skill_id,skill_lv,
+				clif_skill_nodamage(src,*bl,skill_id,skill_lv,
 				sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 				break;
 			}
 		}
-		clif_skill_fail(sd, skill_id, USESKILL_FAIL_NEED_WEAPON, 0);
+		clif_skill_fail(*sd, skill_id, USESKILL_FAIL_NEED_WEAPON, 0);
 		break;
 	case SS_ANTENPOU:
 	case SS_KAGENOMAI:
@@ -11354,7 +11354,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	case SS_ANKOKURYUUAKUMU:
 	case SS_HITOUAKUMU:
 		i = skill_get_splash(skill_id, skill_lv);
-		clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
+		clif_skill_nodamage(src, *bl, skill_id, skill_lv, 1);
 		map_foreachinrange(skill_area_sub, bl, i, BL_CHAR,
 			src, skill_id, skill_lv, tick, flag | BCT_ENEMY | SD_SPLASH | 1, skill_castend_damage_id);
 		break;
@@ -11363,7 +11363,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			status_change_end(bl, SC_NIGHTMARE);
 		} else {
 			i = skill_get_splash(skill_id, skill_lv);
-			clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
+			clif_skill_nodamage(src, *bl, skill_id, skill_lv, 1);
 			map_foreachinrange(skill_area_sub, bl, i, BL_CHAR,
 				src, skill_id, skill_lv, tick, flag | BCT_ENEMY | SD_SPLASH | 1, skill_castend_nodamage_id);
 		}
@@ -11375,7 +11375,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		skill_area_temp[0] = 0;
 		skill_area_temp[1] = bl->id;
 		skill_area_temp[2] = 0;
-		clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
+		clif_skill_nodamage(src, *bl, skill_id, skill_lv, 1);
 		map_foreachinrange(skill_area_sub, bl, i, BL_CHAR, src, skill_id, skill_lv, tick, flag | BCT_ENEMY | SD_SPLASH | 1, skill_castend_damage_id);
 		break;
 	case SH_HOGOGONG_STRIKE:
@@ -11385,7 +11385,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		skill_area_temp[0] = 0;
 		skill_area_temp[1] = bl->id;
 		skill_area_temp[2] = 0;
-		clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
+		clif_skill_nodamage(src, *bl, skill_id, skill_lv, 1);
 		map_foreachinrange(skill_area_sub, bl, i, BL_CHAR, src, skill_id, skill_lv, tick, flag | BCT_ENEMY | SD_SPLASH | 1, skill_castend_damage_id);
 		break;
 	case SH_KI_SUL_WATER_SPRAYING:
@@ -11402,7 +11402,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			}
 			heal = heal * (100 + status_get_crt(src)) * status_get_lv(src) / 10000;
 			status_heal(bl, heal, 0, 0, 0);
-			clif_skill_nodamage(0, bl, AL_HEAL, heal, 1);
+			clif_skill_nodamage(0, *bl, AL_HEAL, heal, 1);
 		}
 		else
 		{
@@ -11410,7 +11410,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if ((sd && pc_checkskill(sd, SH_COMMUNE_WITH_KI_SUL)) || (sc && sc->getSCE(SC_TEMPORARY_COMMUNION)))
 				i += 2;
 
-			clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
+			clif_skill_nodamage(src, *bl, skill_id, skill_lv, 1);
 			map_foreachinrange(skill_area_sub, bl, i, BL_CHAR, 
 				src, skill_id, skill_lv, tick, flag | BCT_PARTY | SD_SPLASH | 1, skill_castend_nodamage_id);
 		}
@@ -11437,7 +11437,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			if ((sd && pc_checkskill(sd, SH_COMMUNE_WITH_KI_SUL)) || (sc && sc->getSCE(SC_TEMPORARY_COMMUNION)))
 				time *= 2;
 			sc_start(src, bl, type, 100, skill_lv, time);
-			clif_skill_nodamage(src, bl, skill_id, skill_lv, 1);
+			clif_skill_nodamage(src, *bl, skill_id, skill_lv, 1);
 		} else {
 			i = skill_get_splash(skill_id, skill_lv);
 			if ((sd && pc_checkskill(sd, SH_COMMUNE_WITH_KI_SUL)) || (sc && sc->getSCE(SC_TEMPORARY_COMMUNION)))
@@ -11456,12 +11456,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 			sc_start(src, bl, (sc_type)(SC_COLORS_OF_HYUN_ROK_1+skill_lv-1), 100, skill_lv, skill_get_time(skill_id, skill_lv));
 		}
-		clif_skill_nodamage(src, src, skill_id, skill_lv, 1);
+		clif_skill_nodamage(src, *src, skill_id, skill_lv, 1);
 		break;
 	case SH_BLESSING_OF_MYSTICAL_CREATURES:
 		status_heal(bl, 0, 0, 200-status_get_ap(bl), 0);
 		sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
-		clif_skill_nodamage(src, src, skill_id, skill_lv, 1);
+		clif_skill_nodamage(src, *src, skill_id, skill_lv, 1);
 		break;
 
 	case GC_WEAPONBLOCKING:
@@ -12902,7 +12902,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	case BO_HELL_DUSTY:
 		bl = battle_get_master(src);
 		if (bl != nullptr) {
-			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
+			clif_skill_nodamage(src,*bl,skill_id,skill_lv,1);
 			sc_start(src, bl, SC_BO_HELL_DUSTY, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 		}
 		break;
@@ -14572,7 +14572,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		break;
 	case SS_KUNAIKUSSETSU:
 		map_foreachinallrange(skill_detonator, src, skill_get_splash(skill_id, skill_lv), BL_SKILL, src, skill_lv);
-		clif_skill_nodamage(src, src, skill_id, skill_lv, 1);
+		clif_skill_nodamage(src, *src, skill_id, skill_lv, 1);
 		break;
 	case SKE_TWINKLING_GALAXY:
 		for (i = 0; i < skill_get_time(skill_id, skill_lv) / skill_get_unit_interval(skill_id); i++)
@@ -15403,10 +15403,10 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		skill_area_temp[1] = 0;
 		skill_mirage_cast(src, NULL,SS_ANTENPOU, skill_lv, x, y, tick, flag);
 		if( map_getcell(src->m, x, y, CELL_CHKLANDPROTECTOR) ) {
-			clif_skill_fail(sd,skill_id,USESKILL_FAIL,0);
+			clif_skill_fail(*sd,skill_id,USESKILL_FAIL,0);
 			return 0;
 		}
-		clif_skill_nodamage(src, src, skill_id, skill_lv, 1);
+		clif_skill_nodamage(src, *src, skill_id, skill_lv, 1);
 		if (battle_config.skill_eightpath_algorithm) {
 			//Use official AoE algorithm
 			map_foreachindir(skill_attack_area, src->m, src->x, src->y, x, y,
@@ -15421,7 +15421,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 		break;
 	case SS_SHINKIROU:
 		flag |= 1;
-		clif_skill_nodamage(src, src, skill_id, skill_lv, 1);
+		clif_skill_nodamage(src, *src, skill_id, skill_lv, 1);
 		sc_start(src, src, SC_SHINKIROU_CALL, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 		skill_unitsetting(src, skill_id, skill_lv, x, y, 0);
 		break;
@@ -15433,7 +15433,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, uint16 skill_id, ui
 	case SS_REIKETSUHOU:
 		skill_mirage_cast(src, NULL,SS_ANTENPOU, skill_lv, 0, 0, tick,flag);
 		if( map_getcell(src->m, x, y, CELL_CHKLANDPROTECTOR) ) {
-			clif_skill_fail(sd,skill_id,USESKILL_FAIL,0);
+			clif_skill_fail(*sd,skill_id,USESKILL_FAIL,0);
 			return 0;
 		}
 		i = skill_get_splash(skill_id, skill_lv);
@@ -16790,10 +16790,8 @@ int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *bl, t_t
 		case UNT_FUUMASHOUAKU:
 		case UNT_KUNAIKAITEN:
 		case UNT_GRENADES_DROPPING:
-		case UNT_GROUND_GRAVITATION:
 		case UNT_STAR_BURST:
 		case UNT_MISSION_BOMBARD:
-		case UNT_JACK_FROST_NOVA:
 			skill_attack(skill_get_type(sg->skill_id),ss,&unit->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 			break;
 
@@ -17494,8 +17492,8 @@ int skill_unit_onplace_timer(struct skill_unit *unit, struct block_list *bl, t_t
 					int hp = (500 + (500 + 50 * pc_checkskill(tsd, SOA_TALISMAN_MASTERY) + 50 * status_get_crt(ss)) * sg->skill_lv) * status_get_lv(ss)/100,
 					sp = (50 + 5 * tstatus->crt + 5 * pc_checkskill(tsd, SOA_TALISMAN_MASTERY)) * sg->skill_lv * (100+status_get_lv(bl))/150 ;
 
-					clif_skill_nodamage(&unit->bl, bl, AL_HEAL, hp, 1);
-					clif_skill_nodamage(&unit->bl, bl, MG_SRECOVERY, sp, 1);
+					clif_skill_nodamage(&unit->bl, *bl, AL_HEAL, hp, 1);
+					clif_skill_nodamage(&unit->bl, *bl, MG_SRECOVERY, sp, 1);
 
 					status_heal(bl, hp, sp, 0, 0);
 				}
