@@ -1549,7 +1549,7 @@ bool battle_status_block_damage(struct block_list *src, struct block_list *targe
 	//TODO: What's causing this status?
 	if (sc->getSCE(SC_HANDICAPSTATE_HOLYFLAME) && flag&BF_MAGIC)	{ 
 		int heal = (int)cap_value(damage/2, INT_MIN, INT_MAX);
-		clif_skill_nodamage(0, target, AL_HEAL,heal, 1);
+		clif_skill_nodamage(target, *target, AL_HEAL,heal, 1);
 		status_heal(target,heal,0,0,0);
 	}
 	
@@ -1617,8 +1617,6 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 
 			return damage; //These skills bypass everything else.
 	}
-
-	status_change* tsc = status_get_sc(bl); //check target status
 
 	// Nothing can reduce the damage, but Safety Wall and Millennium Shield can block it completely.
 	// So can defense sphere's but what the heck is that??? [Rytech]
