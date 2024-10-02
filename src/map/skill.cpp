@@ -18908,9 +18908,9 @@ bool skill_check_condition_castbegin( map_session_data& sd, uint16 skill_id, uin
 			}
 			break;
 		case SH_TEMPORARY_COMMUNION:
-			if (sd && !pc_checkskill(*sd, SH_COMMUNE_WITH_CHUL_HO)
-				  && !pc_checkskill(*sd, SH_COMMUNE_WITH_HYUN_ROK)
-				  && !pc_checkskill(*sd, SH_COMMUNE_WITH_KI_SUL)) {
+			if (sd && !pc_checkskill(sd, SH_COMMUNE_WITH_CHUL_HO)
+				  && !pc_checkskill(sd, SH_COMMUNE_WITH_HYUN_ROK)
+				  && !pc_checkskill(sd, SH_COMMUNE_WITH_KI_SUL)) {
 				clif_skill_fail(sd,skill_id,USESKILL_FAIL_CONDITION,0);
 				return false;
 			}
@@ -18941,19 +18941,19 @@ bool skill_check_condition_castbegin( map_session_data& sd, uint16 skill_id, uin
 			break;
 		case RL_P_ALTER:
 			if (sc && (sc->getSCE(SC_HEAT_BARREL) || sc->getSCE(SC_MADNESSCANCEL))){
-				clif_msg_color( sd, SKILL_FAIL_P_ALT_HEAT_B_MADNESSC, color_table[COLOR_RED] );
+				clif_msg_color( *sd, SKILL_FAIL_P_ALT_HEAT_B_MADNESSC, color_table[COLOR_RED] );
 				return false;
 			}
 			break;
 		case RL_HEAT_BARREL:
 			if (sc && (sc->getSCE(SC_P_ALTER) || sc->getSCE(SC_MADNESSCANCEL))){
-				clif_msg_color( sd, SKILL_FAIL_P_ALT_HEAT_B_MADNESSC, color_table[COLOR_RED] );
+				clif_msg_color( *sd, SKILL_FAIL_P_ALT_HEAT_B_MADNESSC, color_table[COLOR_RED] );
 				return false;
 			}
 			break;
 		case GS_MADNESSCANCEL:
 			if (sc && (sc->getSCE(SC_HEAT_BARREL) || sc->getSCE(SC_P_ALTER))){
-				clif_msg_color( sd, SKILL_FAIL_P_ALT_HEAT_B_MADNESSC, color_table[COLOR_RED] );
+				clif_msg_color( *sd, SKILL_FAIL_P_ALT_HEAT_B_MADNESSC, color_table[COLOR_RED] );
 				return false;
 			}
 			break;
