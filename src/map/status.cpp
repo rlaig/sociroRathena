@@ -12663,7 +12663,7 @@ int status_change_start(struct block_list* src, struct block_list* bl,enum sc_ty
 						val2 *= 2; // Doubles HP
 				}
 				if (status->hp < status->max_hp) {
-					clif_skill_nodamage(nullptr, bl, AL_HEAL, val2, 1);
+					clif_skill_nodamage(nullptr, *bl, AL_HEAL, val2, 1);
 					status_heal(bl, val2, 0, 0);
 				}
 				tick_time = 10000 - ((val1 - 1) * 1000);
@@ -14190,7 +14190,7 @@ TIMER_FUNC(status_change_timer){
 				i += 2;
 				lv += skill_get_max(SH_KI_SUL_RAMPAGE);
 			}
-			clif_skill_nodamage(bl, bl, SH_KI_SUL_RAMPAGE, lv, 1);
+			clif_skill_nodamage(bl, *bl, SH_KI_SUL_RAMPAGE, lv, 1);
 			map_foreachinrange(skill_area_sub, bl, i, BL_CHAR,
 				bl, SH_KI_SUL_RAMPAGE, lv, tick, BCT_PARTY | SD_SPLASH | 1, skill_castend_nodamage_id);
 			sc_timer_next(1000 + tick);
@@ -15088,7 +15088,7 @@ TIMER_FUNC(status_change_timer){
 	case SC_FRESHSHRIMP:
 		if (--(sce->val4) >= 0) {
 			if (status->hp < status->max_hp) {
-				clif_skill_nodamage(nullptr, bl, AL_HEAL, sce->val2, 1);
+				clif_skill_nodamage(nullptr, *bl, AL_HEAL, sce->val2, 1);
 				status_heal(bl, sce->val2, 0, 0);
 			}
 			sc_timer_next((10000 - ((sce->val1 - 1) * 1000)) + tick);
