@@ -1919,6 +1919,7 @@
 	export_constant(SC_BATH_FOAM_A);
 	export_constant(SC_BATH_FOAM_B);
 	export_constant(SC_BATH_FOAM_C);
+	export_constant(SC_BUCHEDENOEL);
 
 	// Sky Emperor
 	export_constant(SC_RISING_SUN);
@@ -5230,7 +5231,8 @@
 	export_constant(STOR_MODE_NONE);
 	export_constant(STOR_MODE_GET);
 	export_constant(STOR_MODE_PUT);
-	
+	export_constant(STOR_MODE_ALL);
+
 	/* instance enter */
 	export_constant(IE_OK);
 	export_constant(IE_NOMEMBER);
