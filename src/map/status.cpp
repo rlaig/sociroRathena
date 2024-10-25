@@ -4965,6 +4965,9 @@ int status_calc_pc_sub(map_session_data* sd, uint8 opt)
 				sd->left_weapon.addrace2[RC2_EP172BATH] += sc->getSCE(SC_BATH_FOAM_C)->val1;
 			}
 		}
+		if (sc->getSCE(SC_EP16_DEF)) {
+			sd->indexed_bonus.subrace2[RC2_EP16_DEF] += sc->getSCE(SC_EP16_DEF)->val1;
+		}
 		if( sc->getSCE(SC_TALISMAN_OF_FIVE_ELEMENTS) ) {
 			const std::vector<e_element> elements = { ELE_FIRE, ELE_WATER, ELE_WIND, ELE_EARTH, ELE_NEUTRAL };
 			int bonus = sc->getSCE(SC_TALISMAN_OF_FIVE_ELEMENTS)->val2;
@@ -6677,6 +6680,8 @@ static unsigned short status_calc_str(struct block_list *bl, status_change *sc, 
 		str += sc->getSCE(SC_ULTIMATECOOK)->val1;
 	if (sc->getSCE(SC_ALL_STAT_DOWN))
 		str -= sc->getSCE(SC_ALL_STAT_DOWN)->val2;
+	if (sc->getSCE(SC_STR_SCROLL))
+		str += sc->getSCE(SC_STR_SCROLL)->val1;
 
 	//TODO: Stat points should be able to be decreased below 0
 	return (unsigned short)cap_value(str,0,USHRT_MAX);
@@ -6927,6 +6932,8 @@ static unsigned short status_calc_int(struct block_list *bl, status_change *sc, 
 		int_ += sc->getSCE(SC_ULTIMATECOOK)->val1;
 	if (sc->getSCE(SC_ALL_STAT_DOWN))
 		int_ -= sc->getSCE(SC_ALL_STAT_DOWN)->val2;
+	if (sc->getSCE(SC_INT_SCROLL))
+		int_ += sc->getSCE(SC_INT_SCROLL)->val1;
 
 	//TODO: Stat points should be able to be decreased below 0
 	return (unsigned short)cap_value(int_,0,USHRT_MAX);
@@ -13072,6 +13079,9 @@ int status_change_start(struct block_list* src, struct block_list* bl,enum sc_ty
 		case SC_BUCHEDENOEL:
 			val2 = 3;	// HP & SP restoration by 3%, Hit +3
 			val3 = 7;	// Critical +7
+			break;
+		case SC_EP16_DEF:
+			status_heal(bl, 1000, 0, 1);
 			break;
 
 		default:
