@@ -374,6 +374,10 @@ struct s_qi_display {
 	e_questinfo_markcolor color;
 };
 
+struct autopots {
+	int hp_rate, sp_rate, hp_nameid, sp_nameid;
+};
+
 class map_session_data {
 public:
 	struct block_list bl;
@@ -508,6 +512,8 @@ public:
 	time_t idletime;
 	time_t idletime_hom;
 	time_t idletime_mer;
+
+	struct autopots autopots;
 
 	struct s_progressbar {
 		int npc_id;
