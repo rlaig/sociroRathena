@@ -4858,6 +4858,8 @@
 	export_constant(OPTION_HANBOK);
 	export_constant(OPTION_OKTOBERFEST);
 	export_constant(OPTION_SUMMER2);
+	export_constant(OPTION_AUTOPOTS);
+	export_constant(OPTION_AUTOATTACK);
 
 	/* status option compounds */
 	export_constant(OPTION_DRAGON);

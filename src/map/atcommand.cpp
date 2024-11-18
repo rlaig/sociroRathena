@@ -9824,6 +9824,104 @@ static void atcommand_commands_sub(map_session_data* sd, const int fd, AtCommand
 	return;
 }
 
+void autoatpots_clean(struct map_session_data *sd)
+{
+	if( sd )
+	{
+		sd->sc.option &= ~OPTION_AUTOPOTS;
+		sd->autopots.hp_nameid = 0;
+		sd->autopots.hp_rate = 0;
+		sd->autopots.sp_nameid = 0;
+		sd->autopots.sp_rate = 0;
+		clif_changeoption(&sd->bl);
+	}
+	return;
+}
+int autoatpots_timer(int tid, unsigned int tick, int id, intptr_t data)
+{
+	struct map_session_data *sd=NULL;
+	struct item_data* item = NULL;
+	int index;
+	sd=map_id2sd(id);
+	if( sd == NULL )
+		return 0;
+	if(sd->sc.option & OPTION_AUTOPOTS)
+	{
+		int hp_rate = sd->autopots.hp_rate;
+		int sp_rate = sd->autopots.sp_rate;
+		int hp_nameid = sd->autopots.hp_nameid;
+		int sp_nameid = sd->autopots.sp_nameid;
+		if( ( !sp_rate && !hp_rate ) || pc_isdead(sd) )
+		{
+			clif_displaymessage(sd->fd, "Auto-pots : OFF_");
+			autoatpots_clean(sd);
+			return 0;
+		}
+		if( ( sd->battle_status.hp*100/sd->battle_status.max_hp ) < hp_rate && hp_nameid && hp_rate )
+		{
+			ARR_FIND(0, MAX_INVENTORY, index, sd->status.inventory[index].nameid == hp_nameid);
+			if( sd->status.inventory[index].nameid == hp_nameid )
+				pc_useitem(sd,index);
+		}
+		if( ( sd->battle_status.sp*100/sd->battle_status.max_sp ) < sp_rate && sp_nameid && sp_rate )
+		{
+			ARR_FIND(0, MAX_INVENTORY, index, sd->status.inventory[index].nameid == sp_nameid);
+			if( sd->status.inventory[index].nameid == sp_nameid )
+				pc_useitem(sd,index);
+		}
+		add_timer(gettick()+500,autoatpots_timer,sd->bl.id,0);
+	}
+	return 0;
+}
+ACMD_FUNC(autopots)
+{
+	int hp_rate=0, hp_nameid=0, sp_rate=0, sp_nameid=0, type=0;
+	nullpo_retr(-1, sd);
+
+	if (!message || !*message || 
+		sscanf(message, "%d %d %d %d %d", &type, &hp_rate, &hp_nameid, &sp_rate, &sp_nameid) < 5 ||
+		( type <= 0 || type > 1 ) ||
+		( hp_rate < 0 || hp_rate > 99 ) ||
+		( sp_rate < 0 || sp_rate > 99 ) )
+	{
+		clif_displaymessage(fd, "@autopots <type> <hp_rate> <hp_item id> <sp_rate> <sp_item id>");
+		clif_displaymessage(fd, "Auto-pots : OFF");
+		autoatpots_clean(sd);
+		return 0;
+	}
+
+	if (sd->sc.option & OPTION_AUTOPOTS)
+	{
+		autoatpots_clean(sd);
+	}
+	if( hp_rate == 0 ) hp_nameid = 0;
+	if( sp_rate == 0 ) sp_nameid = 0;
+	if( hp_nameid == 0 ) hp_rate = 0;
+	if( sp_nameid == 0 ) sp_rate = 0;
+	if( itemdb_exists(hp_nameid) == NULL && hp_nameid )
+	{
+		hp_nameid = 0;
+		hp_rate = 0;
+		clif_displaymessage(fd, "Auto-pots : Invalid item for HP");
+	}
+	if( itemdb_exists(sp_nameid) == NULL && sp_nameid )
+	{
+		sp_nameid = 0;
+		sp_rate = 0;
+		clif_displaymessage(fd, "Auto-pots : Invalid item for SP");
+	}
+	clif_displaymessage(fd, "Auto-pots : ON");
+	sd->sc.option |= OPTION_AUTOPOTS;
+	sd->autopots.hp_nameid = hp_nameid;
+	sd->autopots.hp_rate = hp_rate;
+	sd->autopots.sp_nameid = sp_nameid;
+	sd->autopots.sp_rate = sp_rate;
+	add_timer(gettick()+200,autoatpots_timer,sd->bl.id,0);
+
+	clif_changeoption(&sd->bl);
+	return 0;
+}
+
 /*==========================================
  * @commands Lists available @ commands to you
  *------------------------------------------*/
@@ -9850,6 +9948,64 @@ ACMD_FUNC(mount2) {
 		clif_displaymessage(sd->fd,msg_txt(sd,1364)); // You have released your mount.
 		status_change_end(&sd->bl, SC_ALL_RIDING);
 	}
+	return 0;
+}
+
+static int buildin_autoattack_sub(struct block_list *bl,va_list ap)
+{
+	int *target_id=va_arg(ap,int *);
+	*target_id = bl->id;
+	return 1;
+}
+void autoattack_motion(struct map_session_data* sd)
+{
+	int i, target_id;
+	for(i=0;i<=9;i++)
+	{
+		target_id=0;
+		map_foreachinarea(buildin_autoattack_sub, sd->bl.m, sd->bl.x-i, sd->bl.y-i, sd->bl.x+i, sd->bl.y+i, BL_MOB, &target_id);
+		if(target_id)
+		{
+			unit_attack(&sd->bl,target_id,1);
+			break;			
+		}
+		target_id=0;
+	}
+	if(!target_id)
+	{
+		unit_walktoxy(&sd->bl,sd->bl.x+(rand()%2==0?-1:1)*(rand()%10),sd->bl.y+(rand()%2==0?-1:1)*(rand()%10),0);
+	}
+	return;
+}
+int autoattack_timer(int tid, unsigned int tick, int id, intptr_t data)
+{
+	struct map_session_data *sd=NULL;
+ 
+	sd=map_id2sd(id);
+	if(sd==NULL)
+		return 0;
+	if(sd->sc.option & OPTION_AUTOATTACK)
+	{
+		autoattack_motion(sd);
+		add_timer(gettick()+2000,autoattack_timer,sd->bl.id,0);
+	}
+	return 0;
+}
+ACMD_FUNC(autoattack)
+{
+	nullpo_retr(-1, sd);
+	if (sd->sc.option & OPTION_AUTOATTACK)
+	{
+		clif_displaymessage(fd, "Auto-attack OFF");
+		sd->sc.option &= ~OPTION_AUTOATTACK;
+		unit_stop_attack(&sd->bl);
+	}else
+	{
+		clif_displaymessage(fd, "Auto-attack ON");
+		sd->sc.option |= OPTION_AUTOATTACK;
+		add_timer(gettick()+200,autoattack_timer,sd->bl.id,0);
+	}
+	clif_changeoption(&sd->bl);
 	return 0;
 }
 
@@ -11046,6 +11202,8 @@ void atcommand_basecommands(void) {
 	 **/
 	AtCommandInfo atcommand_base[] = {
 #include <custom/atcommand_def.inc>
+		ACMD_DEF(autoattack),
+		ACMD_DEF(autopots),
 		ACMD_DEF2R("warp", mapmove, ATCMD_NOCONSOLE),
 		ACMD_DEF(where),
 		ACMD_DEF(jumpto),
