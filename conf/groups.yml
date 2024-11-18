@@ -46,6 +46,8 @@ Body:
     Name: Player
     Level: 0
     Commands:
+      refresh: true
+      go: true
       trade: true
       duel: true
       invite: true
@@ -93,11 +95,9 @@ Body:
     Level: 0
     Commands:
       autotrade: true
-      refresh: true
       noask: true
       noks: true
       request: true
-      go: true
       breakguild: true
       channel: true
   - Id: 2
@@ -228,7 +228,7 @@ Body:
     Name: Tropa
     Level: 3
     Inherit:
-      Super Player: true
+      Event Manager: true
     LogCommands: true
     Permissions:
       can_trade: true
