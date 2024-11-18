@@ -9837,7 +9837,7 @@ void autoatpots_clean(struct map_session_data *sd)
 	}
 	return;
 }
-int autoatpots_timer(int tid, unsigned int tick, int id, intptr_t data)
+int autoatpots_timer(int tid, long int tick, int id, long int data)
 {
 	struct map_session_data *sd=NULL;
 	struct item_data* item = NULL;
@@ -9859,14 +9859,14 @@ int autoatpots_timer(int tid, unsigned int tick, int id, intptr_t data)
 		}
 		if( ( sd->battle_status.hp*100/sd->battle_status.max_hp ) < hp_rate && hp_nameid && hp_rate )
 		{
-			ARR_FIND(0, MAX_INVENTORY, index, sd->status.inventory[index].nameid == hp_nameid);
-			if( sd->status.inventory[index].nameid == hp_nameid )
+			ARR_FIND(0, MAX_INVENTORY, index, sd->inventory.u.items_inventory[index].nameid == hp_nameid);
+			if( sd->inventory.u.items_inventory[index].nameid == hp_nameid )
 				pc_useitem(sd,index);
 		}
 		if( ( sd->battle_status.sp*100/sd->battle_status.max_sp ) < sp_rate && sp_nameid && sp_rate )
 		{
-			ARR_FIND(0, MAX_INVENTORY, index, sd->status.inventory[index].nameid == sp_nameid);
-			if( sd->status.inventory[index].nameid == sp_nameid )
+			ARR_FIND(0, MAX_INVENTORY, index, sd->inventory.u.items_inventory[index].nameid == sp_nameid);
+			if( sd->inventory.u.items_inventory[index].nameid == sp_nameid )
 				pc_useitem(sd,index);
 		}
 		add_timer(gettick()+500,autoatpots_timer,sd->bl.id,0);
@@ -9898,13 +9898,13 @@ ACMD_FUNC(autopots)
 	if( sp_rate == 0 ) sp_nameid = 0;
 	if( hp_nameid == 0 ) hp_rate = 0;
 	if( sp_nameid == 0 ) sp_rate = 0;
-	if( itemdb_exists(hp_nameid) == NULL && hp_nameid )
+	if( item_db.exists(hp_nameid) == NULL && hp_nameid )
 	{
 		hp_nameid = 0;
 		hp_rate = 0;
 		clif_displaymessage(fd, "Auto-pots : Invalid item for HP");
 	}
-	if( itemdb_exists(sp_nameid) == NULL && sp_nameid )
+	if( item_db.exists(sp_nameid) == NULL && sp_nameid )
 	{
 		sp_nameid = 0;
 		sp_rate = 0;
@@ -9977,7 +9977,7 @@ void autoattack_motion(struct map_session_data* sd)
 	}
 	return;
 }
-int autoattack_timer(int tid, unsigned int tick, int id, intptr_t data)
+int autoattack_timer(int tid, long int tick, int id, long int data)
 {
 	struct map_session_data *sd=NULL;
  
