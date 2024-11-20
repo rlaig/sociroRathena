@@ -9898,13 +9898,13 @@ ACMD_FUNC(autopots)
 	if( sp_rate == 0 ) sp_nameid = 0;
 	if( hp_nameid == 0 ) hp_rate = 0;
 	if( sp_nameid == 0 ) sp_rate = 0;
-	if( item_db.exists(hp_nameid) && hp_nameid )
+	if( !item_db.exists(hp_nameid) && hp_nameid )
 	{
 		hp_nameid = 0;
 		hp_rate = 0;
 		clif_displaymessage(fd, "Auto-pots : Invalid item for HP");
 	}
-	if( item_db.exists(sp_nameid) && sp_nameid )
+	if( !item_db.exists(sp_nameid) && sp_nameid )
 	{
 		sp_nameid = 0;
 		sp_rate = 0;
