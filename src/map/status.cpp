@@ -5245,7 +5245,6 @@ int32 status_calc_homunculus_(struct homun_data *hd, uint8 opt)
 #endif
 
 	status_calc_misc(hd, status, hom.level);
-	status_calc_misc(&hd->bl, status, hom.level);
 
 	if((skill_lv = hom_checkskill(hd, MH_CLASSY_FLUTTER)) > 0) {
 		status->matk_min += 100 + 60* skill_lv;
@@ -9775,8 +9774,6 @@ static int32 status_get_sc_interval(enum sc_type type)
 			return 3000;
 		case SC_SHIELDSPELL_SP:
 			return 5000;
-		case SC_STAR_BURST:
-			return 300;
 		default:
 			break;
 	}
@@ -13866,9 +13863,9 @@ int32 status_change_end( struct block_list* bl, enum sc_type type, int32 tid ){
 			break;
 		case SC_ROSEBLOSSOM:
 			{
-				struct block_list *src=map_id2bl(sce->val3);
+				struct block_list *src=map_id2bl(val3);
 				if(src)
-					skill_castend_pos2(src, bl->x, bl->y, sce->val2, sce->val1, gettick(), SD_LEVEL);
+					skill_castend_pos2(src, bl->x, bl->y, val2, val1, gettick(), SD_LEVEL);
 			}
 			break;
 		case SC_CLOSECONFINE2:
@@ -15418,13 +15415,6 @@ TIMER_FUNC(status_change_timer){
 			status_heal( bl, hp, 0, 0, 0 );
 			clif_skill_nodamage( nullptr, *bl, AL_HEAL, hp );
 			sc_timer_next(3000 + tick);
-			return 0;
-		}
-		break;
-	case SC_KI_SUL_RAMPAGE:
-		if (--(sce->val4) >= 0) {
-			skill_castend_nodamage_id( bl, bl, SH_KI_SUL_RAMPAGE, sce->val1, tick, 1 );
-			sc_timer_next(1000 + tick);
 			return 0;
 		}
 		break;
