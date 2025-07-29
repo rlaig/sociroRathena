@@ -382,10 +382,6 @@ struct autopots {
 	int hp_rate, sp_rate, hp_nameid, sp_nameid;
 };
 
-struct autopots {
-	int hp_rate, sp_rate, hp_nameid, sp_nameid;
-};
-
 class map_session_data : public block_list {
 public:
 	struct unit_data ud;
