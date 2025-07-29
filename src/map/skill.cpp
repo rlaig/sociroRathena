@@ -3293,9 +3293,9 @@ int skill_mirage_cast(struct block_list* src, struct block_list* bl, int skill_i
 		if (itsu->skill_id == SS_SHINKIROU) {
 			switch (skill_id) {
 			case SS_KUNAIWAIKYOKU: {
-				if (!(distance_xy(x, y, itsu->unit->bl.x, itsu->unit->bl.y) < skill_get_range(skill_id, skill_lv)))
+				if (!(distance_xy(x, y, itsu->unit->x, itsu->unit->y) < skill_get_range(skill_id, skill_lv)))
 					continue;
-				clif_skill_poseffect(&itsu->unit->bl, skill_id, skill_lv, x, y, tick);
+				clif_skill_poseffect(*itsu->unit, skill_id, skill_lv, x, y, tick);
 				int i = skill_get_splash(skill_id, skill_lv);
 				map_foreachinallarea(skill_area_sub, src->m, x - i, y - i, x + i, y + i, BL_CHAR,
 					src, skill_id, skill_lv, tick, flag | BCT_ENEMY | SKILL_ALTDMG_FLAG | 1, skill_castend_damage_id);
@@ -3303,22 +3303,22 @@ int skill_mirage_cast(struct block_list* src, struct block_list* bl, int skill_i
 				break;
 			case SS_KAGENOMAI://nodamage splash
 			case SS_ANTENPOU://nodamage splash
-				clif_skill_nodamage(&itsu->unit->bl, *bl, skill_id, skill_lv, tick);
-				map_foreachinrange(skill_area_sub, &itsu->unit->bl, skill_get_splash(skill_id, skill_lv), BL_CHAR,
+				clif_skill_nodamage(itsu->unit, *bl, skill_id, skill_lv, tick);
+				map_foreachinrange(skill_area_sub, itsu->unit, skill_get_splash(skill_id, skill_lv), BL_CHAR,
 					src, skill_id, skill_lv, tick, BCT_ENEMY | SD_SPLASH | SD_ANIMATION | SKILL_ALTDMG_FLAG | 1, skill_castend_damage_id);
 				break;
 			case SS_KAGEGISSEN://damage splash
 				x = bl->x;
 				y = bl->y;
 				skill_area_temp[1] = 0;
-				clif_skill_nodamage(&itsu->unit->bl, *bl, skill_id, skill_lv, tick);
+				clif_skill_nodamage(itsu->unit, *bl, skill_id, skill_lv, tick);
 				if (battle_config.skill_eightpath_algorithm) {
 					//Use official AoE algorithm
-					map_foreachindir(skill_attack_area, itsu->unit->bl.m, itsu->unit->bl.x, itsu->unit->bl.y, x, y,
+					map_foreachindir(skill_attack_area, itsu->unit->m, itsu->unit->x, itsu->unit->y, x, y,
 						skill_get_splash(skill_id, skill_lv), skill_get_maxcount(skill_id, skill_lv), 0, splash_target(src),
 						skill_get_type(skill_id), src, src, skill_id, skill_lv, tick, SKILL_ALTDMG_FLAG, BCT_ENEMY);
 				} else {
-					map_foreachinpath(skill_attack_area, itsu->unit->bl.m, itsu->unit->bl.x, itsu->unit->bl.y, x, y,
+					map_foreachinpath(skill_attack_area, itsu->unit->m, itsu->unit->x, itsu->unit->y, x, y,
 						skill_get_splash(skill_id, skill_lv), skill_get_maxcount(skill_id, skill_lv), splash_target(src),
 						skill_get_type(skill_id), src, src, skill_id, skill_lv, tick, SKILL_ALTDMG_FLAG, BCT_ENEMY);
 				}
@@ -3925,7 +3925,7 @@ int64 skill_attack (int32 attack_type, struct block_list* src, struct block_list
 			clif_damage(*src,*bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,dmg.type,dmg.damage2,false);
 			break;
 		case SS_FUUMAKOUCHIKU_BLASTING:
-			dmg.dmotion = clif_skill_damage(src, bl, tick, dmg.amotion,dmg.dmotion,dmg.damage,dmg.div_, SS_FUUMAKOUCHIKU, 1, DMG_MULTI_HIT);
+			clif_skill_damage(*src, *bl, tick, dmg.amotion,dmg.dmotion,dmg.damage,dmg.div_, SS_FUUMAKOUCHIKU, 1, DMG_MULTI_HIT);
 			break;
 		case AS_SPLASHER:
 			if( flag&SD_ANIMATION ) // the surrounding targets
@@ -4042,7 +4042,7 @@ int64 skill_attack (int32 attack_type, struct block_list* src, struct block_list
 			break;
 		case TR_ROSEBLOSSOM_ATK:
 			//TODO dmg display is delayed if target dies from TR_ROSEBLOSSOM but shouldn't be [munkrej]
-			dmg.dmotion = clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, skill_lv, DMG_SPLASH);
+			clif_skill_damage(*dsrc, *bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, skill_lv, DMG_SPLASH);
 			break;
 		case ABC_FROM_THE_ABYSS_ATK:
 			clif_skill_damage( *dsrc, *bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skill_id, -1, DMG_SPLASH );
@@ -5266,19 +5266,7 @@ bool skill_mirage_cast( block_list& src, block_list* bl, uint16 skill_id, uint16
 	return true;
 }
 
-int32 skill_shimiru_check_cell( block_list* target, va_list ap ){
-	if( target != nullptr && target->type == BL_SKILL ){
-		skill_unit* su = reinterpret_cast<skill_unit*>( target );
 
-		if( su->group != nullptr && su->group->skill_id == SS_SHINKIROU ){
-			return 1;
-		}
-
-		return 0;
-	}
-
-	return 1;
-}
 
 /*==========================================
  *
@@ -8695,7 +8683,7 @@ int32 skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, 
 		sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 		// Homunculus
 		if (hd)
-			skill_blockhomun_start(hd, skill_id, skill_get_cooldown(skill_id, skill_lv));
+			skill_blockhomun_start(*hd, skill_id, skill_get_cooldown(skill_id, skill_lv));
 		clif_skill_nodamage(src, *src, skill_id, skill_lv, sc_start(src, src, type, 100, skill_lv, skill_get_time(skill_id, skill_lv)));
 		break;
 	case NJ_BUNSINJYUTSU:
@@ -9093,7 +9081,7 @@ int32 skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, 
 		int32 starget = BL_CHAR|BL_SKILL;
 
 		if (skill_id == LG_OVERBRAND)
-			clif_skill_poseffect(src, skill_id, skill_lv, src->x, src->y, tick);
+			clif_skill_poseffect(*src, skill_id, skill_lv, src->x, src->y, tick);
 
 		if (skill_id == SR_HOWLINGOFLION)
 			starget = splash_target(src);
@@ -11334,7 +11322,7 @@ int32 skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, 
 		clif_skill_nodamage(src,*bl,skill_id,skill_lv,
 			sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
 		if (hd)
-			skill_blockhomun_start(hd, skill_id, skill_get_cooldown(skill_id,skill_lv));
+			skill_blockhomun_start(*hd, skill_id, skill_get_cooldown(skill_id,skill_lv));
 		break;
 
 	case NPC_DRAGONFEAR:
@@ -11545,7 +11533,7 @@ int32 skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, 
 
 			clif_skill_nodamage(src,*bl,skill_id,skill_lv,1);
 			for (i = 0; i < limit; i++)
-				pc_addsoulball(sd,limit);
+				pc_addsoulball(*sd,limit);
 		}
 		break;
 	case SOA_TALISMAN_OF_PROTECTION:
@@ -13732,33 +13720,6 @@ int32 skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, 
 		clif_skill_nodamage(src, *src, skill_id, skill_lv);
 		break;
 
-	case SOA_SOUL_GATHERING:
-		clif_skill_nodamage(src, *bl, skill_id, skill_lv);
-
-		if( sd != nullptr ){
-			int32 limit = 5 + pc_checkskill(sd, SP_SOULENERGY) * 3;
-			
-			for (i = 0; i < limit; i++)
-				pc_addsoulball(*sd,limit);
-		}
-		break;
-
-	case SOA_TALISMAN_OF_WARRIOR:
-	case SOA_TALISMAN_OF_MAGICIAN:
-	case SOA_TALISMAN_OF_FIVE_ELEMENTS:
-		if( dstsd != nullptr ){
-			int16 index = dstsd->equip_index[EQI_HAND_R];
-
-			if (index >= 0 && dstsd->inventory_data[index] != nullptr && dstsd->inventory_data[index]->type == IT_WEAPON) {
-				clif_skill_nodamage(src, *bl, skill_id, skill_lv, sc_start(src,bl,type,100,skill_lv,skill_get_time(skill_id,skill_lv)));
-				break;
-			}
-		}
-
-		if( sd != nullptr ){
-			clif_skill_fail( *sd, skill_id, USESKILL_FAIL_NEED_WEAPON );
-		}
-		break;
 
 	case SH_HOWLING_OF_CHUL_HO: {
 		int32 range = skill_get_splash(skill_id, skill_lv);
@@ -13903,32 +13864,6 @@ int32 skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, 
 		status_heal(bl, 0, 0, 200-status_get_ap(bl), 0);
 		sc_start(src, bl, type, 100, skill_lv, skill_get_time(skill_id, skill_lv));
 		clif_skill_nodamage(src, *src, skill_id, skill_lv);
-		break;
-
-
-	case SS_ANTENPOU:
-	case SS_KAGENOMAI:
-		skill_mirage_cast(*src, nullptr,skill_id, skill_lv, 0, 0, tick, flag | BCT_WOS);
-		[[fallthrough]];
-	case SS_KAGEAKUMU:
-	case SS_ANKOKURYUUAKUMU:
-	case SS_HITOUAKUMU: {
-		int32 range = skill_get_splash( skill_id, skill_lv );
-
-		clif_skill_nodamage(src, *bl, skill_id, skill_lv);
-
-		map_foreachinrange( skill_area_sub, bl, range, BL_CHAR, src, skill_id, skill_lv, tick, flag | BCT_ENEMY | SD_SPLASH | 1, skill_castend_damage_id );
-		} break;
-	case SS_AKUMUKESU:
-		if (flag & 1) {
-			status_change_end(bl, SC_NIGHTMARE);
-		} else {
-			int32 range = skill_get_splash( skill_id, skill_lv );
-
-			clif_skill_nodamage(src, *bl, skill_id, skill_lv);
-
-			map_foreachinrange( skill_area_sub, bl, range, BL_CHAR, src, skill_id, skill_lv, tick, flag | BCT_ENEMY | SD_SPLASH | 1, skill_castend_nodamage_id );
-		}
 		break;
 
 	default: {
@@ -15069,7 +15004,7 @@ int32 skill_castend_pos2(struct block_list* src, int32 x, int32 y, uint16 skill_
 				skill_unit *su = itsu->unit;
 				std::shared_ptr<s_skill_unit_group> sg = itsu->unit->group;
 
-				if (itsu->skill_id == SKE_TWINKLING_GALAXY && distance_xy(x, y, su->bl.x, su->bl.y) <= skill_get_unit_range(SKE_TWINKLING_GALAXY, itsu->skill_lv)) {
+				if (itsu->skill_id == SKE_TWINKLING_GALAXY && distance_xy(x, y, su->x, su->y) <= skill_get_unit_range(SKE_TWINKLING_GALAXY, itsu->skill_lv)) {
 						for(int i=0;i<MAX_SKILLTIMERSKILL;i++) {
 							if(ud->skilltimerskill[i]) {
 								if (ud->skilltimerskill[i]->skill_id == SKE_TWINKLING_GALAXY) {
@@ -19598,19 +19533,19 @@ bool skill_check_condition_castbegin( map_session_data& sd, uint16 skill_id, uin
 			break;
 		case RL_P_ALTER:
 			if (sc && (sc->getSCE(SC_HEAT_BARREL) || sc->getSCE(SC_MADNESSCANCEL))){
-				clif_msg_color( &sd, SKILL_FAIL_P_ALT_HEAT_B_MADNESSC, color_table[COLOR_RED] );
+				clif_msg_color( sd, SKILL_FAIL_P_ALT_HEAT_B_MADNESSC, color_table[COLOR_RED] );
 				return false;
 			}
 			break;
 		case RL_HEAT_BARREL:
 			if (sc && (sc->getSCE(SC_P_ALTER) || sc->getSCE(SC_MADNESSCANCEL))){
-				clif_msg_color( &sd, SKILL_FAIL_P_ALT_HEAT_B_MADNESSC, color_table[COLOR_RED] );
+				clif_msg_color( sd, SKILL_FAIL_P_ALT_HEAT_B_MADNESSC, color_table[COLOR_RED] );
 				return false;
 			}
 			break;
 		case GS_MADNESSCANCEL:
 			if (sc && (sc->getSCE(SC_HEAT_BARREL) || sc->getSCE(SC_P_ALTER))){
-				clif_msg_color( &sd, SKILL_FAIL_P_ALT_HEAT_B_MADNESSC, color_table[COLOR_RED] );
+				clif_msg_color( sd, SKILL_FAIL_P_ALT_HEAT_B_MADNESSC, color_table[COLOR_RED] );
 				return false;
 			}
 			break;
@@ -21809,7 +21744,7 @@ static int32 skill_cell_overlap(struct block_list *bl, va_list ap)
 	switch (skill_id) {
 		case SS_FUUMAKOUCHIKU:
 			if (unit->group->skill_id == SS_FUUMASHOUAKU) {
-				clif_skill_damage(NULL, bl, gettick(), 0, 0, 0, 1, skill_id, 1, DMG_ENDURE);
+				clif_skill_damage(*unit, *bl, gettick(), 0, 0, 0, 1, skill_id, 1, DMG_ENDURE);
 				(*alive) = 0;
 				skill_delunit(unit);
 				return 1;
