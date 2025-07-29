@@ -10022,7 +10022,7 @@ void autoatpots_clean(struct map_session_data *sd)
 		sd->autopots.hp_rate = 0;
 		sd->autopots.sp_nameid = 0;
 		sd->autopots.sp_rate = 0;
-		clif_changeoption(&sd->bl);
+		clif_changeoption(sd);
 	}
 	return;
 }
@@ -10058,7 +10058,7 @@ int autoatpots_timer(int tid, long int tick, int id, long int data)
 			if( sd->inventory.u.items_inventory[index].nameid == sp_nameid )
 				pc_useitem(sd,index);
 		}
-		add_timer(gettick()+500,autoatpots_timer,sd->bl.id,0);
+		add_timer(gettick()+500,autoatpots_timer,sd->id,0);
 	}
 	return 0;
 }
@@ -10105,9 +10105,9 @@ ACMD_FUNC(autopots)
 	sd->autopots.hp_rate = hp_rate;
 	sd->autopots.sp_nameid = sp_nameid;
 	sd->autopots.sp_rate = sp_rate;
-	add_timer(gettick()+200,autoatpots_timer,sd->bl.id,0);
+	add_timer(gettick()+200,autoatpots_timer,sd->id,0);
 
-	clif_changeoption(&sd->bl);
+	clif_changeoption(sd);
 	return 0;
 }
 
@@ -10152,17 +10152,17 @@ void autoattack_motion(struct map_session_data* sd)
 	for(i=0;i<=9;i++)
 	{
 		target_id=0;
-		map_foreachinarea(buildin_autoattack_sub, sd->bl.m, sd->bl.x-i, sd->bl.y-i, sd->bl.x+i, sd->bl.y+i, BL_MOB, &target_id);
+		map_foreachinarea(buildin_autoattack_sub, sd->m, sd->x-i, sd->y-i, sd->x+i, sd->y+i, BL_MOB, &target_id);
 		if(target_id)
 		{
-			unit_attack(&sd->bl,target_id,1);
+			unit_attack(sd,target_id,1);
 			break;			
 		}
 		target_id=0;
 	}
 	if(!target_id)
 	{
-		unit_walktoxy(&sd->bl,sd->bl.x+(rand()%2==0?-1:1)*(rand()%10),sd->bl.y+(rand()%2==0?-1:1)*(rand()%10),0);
+		unit_walktoxy(sd,sd->x+(rand()%2==0?-1:1)*(rand()%10),sd->y+(rand()%2==0?-1:1)*(rand()%10),0);
 	}
 	return;
 }
@@ -10176,7 +10176,7 @@ int autoattack_timer(int tid, long int tick, int id, long int data)
 	if(sd->sc.option & OPTION_AUTOATTACK)
 	{
 		autoattack_motion(sd);
-		add_timer(gettick()+2000,autoattack_timer,sd->bl.id,0);
+		add_timer(gettick()+2000,autoattack_timer,sd->id,0);
 	}
 	return 0;
 }
@@ -10187,14 +10187,14 @@ ACMD_FUNC(autoattack)
 	{
 		clif_displaymessage(fd, "Auto-attack OFF");
 		sd->sc.option &= ~OPTION_AUTOATTACK;
-		unit_stop_attack(&sd->bl);
+		unit_stop_attack(sd);
 	}else
 	{
 		clif_displaymessage(fd, "Auto-attack ON");
 		sd->sc.option |= OPTION_AUTOATTACK;
-		add_timer(gettick()+200,autoattack_timer,sd->bl.id,0);
+		add_timer(gettick()+200,autoattack_timer,sd->id,0);
 	}
-	clif_changeoption(&sd->bl);
+	clif_changeoption(sd);
 	return 0;
 }
 
